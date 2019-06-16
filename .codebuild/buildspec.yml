@@ -20,7 +20,7 @@ phases:
             - pip install -r requirements_dev.txt
     pre_build:
         commands:
-            - make lint || 1
+            - make lint || true
             - make test
     build:
         commands:
