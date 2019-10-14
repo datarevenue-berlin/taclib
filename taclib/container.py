@@ -288,7 +288,7 @@ class K8sClient(ContainerClient):
                 # job already exists
                 log.warning("Received API exception 409.")
                 job = self._get_job(
-                    configuration["metadata"]["labels"]["luigi_task_id"]
+                    configuration["metadata"]["labels"]["taclib_task_name"]
                 )
                 log.info("Found existing job for this task. " "Will try to reconnect")
                 # KubernetesTask will receive a job object and depending on
@@ -304,9 +304,9 @@ class K8sClient(ContainerClient):
     def get_executions(self, task_id, include_hostname=None):
         """Get a job resource by its name."""
         if include_hostname or config["retry_host_sensitive"].get(bool):
-            lbl_sel = f"luigi_task_id={task_id},luigi_host={socket.gethostname()}"
+            lbl_sel = f"taclib_task_name={task_id},luigi_host={socket.gethostname()}"
         else:
-            lbl_sel = f"luigi_task_id={task_id}"
+            lbl_sel = f"taclib_task_name={task_id}"
         res = self._c_batch.list_namespaced_job(self.namespace, label_selector=lbl_sel)
         jobs = sorted(res.items, key=lambda x: x.metadata.labels["luigi_retries"])
         return jobs
