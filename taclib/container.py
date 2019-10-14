@@ -1,6 +1,7 @@
 import socket
 from logging import getLogger
 
+from kubernetes.watch import Watch
 from urllib3.exceptions import ReadTimeoutError
 
 from taclib.config import config
@@ -350,20 +351,17 @@ class K8sClient(ContainerClient):
             return False
 
     def log_generator(self, container):
-        # TODO: this needs to be updated after this PR is merged
-        # https://github.com/kubernetes-client/python-base/pull/93
         pod = self._get_pod(container)
         log = getLogger(__name__)
-        while True:
-            log.info(f"Waiting for job {container.metadata.name} to run...")
-            if self._wait_for_status(container, "Running", timeout=60):
-                res = self._c.read_namespaced_pod_log(
-                    pod.metadata.name,
-                    self.namespace,
-                    follow=True,
-                    _preload_content=False,
-                )
-                return res.stream()
+
+        log.info(f"Waiting for job {container.metadata.name} to run...")
+        w = Watch()
+        for e in w.stream(
+            self._c.read_namespaced_pod_log,
+            name=pod.metadata.name,
+            namespace=self.namespace,
+        ):
+            yield e.encode()
 
     def _get_pod(self, job, timeout=15):
         """Get pod spawned by a certain job."""
