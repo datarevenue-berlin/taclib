@@ -11,7 +11,7 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-with open('requirements.txt' 'r') as fp:
+with open('requirements.txt', 'r') as fp:
     requirements = fp.readlines()
 
 test_requirements = ['pytest']
