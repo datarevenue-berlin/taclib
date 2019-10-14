@@ -8,4 +8,4 @@ from taclib.config import config
 
 
 def test_config():
-    config['image'].get(str) == 'python3:latest'
+    config["image"].get(str) == "python3:latest"
