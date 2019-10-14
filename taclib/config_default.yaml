@@ -1,0 +1,5 @@
+image: python3:latest
+requirements: {}
+environment: {}
+pod_spec: {}
+job_spec: {}

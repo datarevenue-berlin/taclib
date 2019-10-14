@@ -1,6 +1,11 @@
+import os
+
 import click
 import kubernetes
-from taclib.container import K8sClient
+
+os.environ["DRTOOLS_SETTINGS_MODULE"] = "smaato_dmo.settings.dev"
+
+from drtools.core.container import K8sClient
 
 
 @click.group("debug")

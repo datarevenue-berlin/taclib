@@ -11,11 +11,10 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['Click>=6.0', ]
+with open('requirements.txt' 'r') as fp:
+    requirements = fp.readlines()
 
-setup_requirements = ['pytest-runner', ]
-
-test_requirements = ['pytest', ]
+test_requirements = ['pytest']
 
 setup(
     author="Data Revenue GmbH",
@@ -39,7 +38,6 @@ setup(
     keywords='taclib',
     name='taclib',
     packages=find_packages(include=['taclib']),
-    setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/datarevenue-berlin/taclib',
