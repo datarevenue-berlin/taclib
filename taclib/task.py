@@ -107,7 +107,7 @@ class ContainerTask(luigi.Task):
         It should be translated into other execution engines format by the
         corresponding subclass.
         """
-        return
+        return {}
 
     def _set_name(self):
         if self._retry_count:
@@ -191,7 +191,7 @@ class KubernetesTask(ContainerTask):
         If you overwrite this class don't forget to call superclass method in
         case you're using the service_account or node_selector property!
         """
-        pod_spec_kwargs = config["pod_spec_kwargs"].get()
+        pod_spec_kwargs = config["pod_spec"].get()
         node_selector = self._node_selector_dict
 
         if len(node_selector):

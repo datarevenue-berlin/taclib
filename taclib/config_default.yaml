@@ -1,5 +1,6 @@
 image: python3:latest
 requirements: {}
 environment: {}
+resources: {}
 pod_spec: {}
 job_spec: {}
