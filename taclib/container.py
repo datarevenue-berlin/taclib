@@ -1,6 +1,9 @@
+import socket
 from logging import getLogger
+
 from urllib3.exceptions import ReadTimeoutError
 
+from taclib.config import config
 
 try:
     import docker
@@ -11,7 +14,8 @@ except ImportError:
     DOCKER_AVAILABLE = False
     pass
 try:
-    from kubernetes import client, config, watch
+    from kubernetes import client, watch
+    import kubernetes.config as k8s_config
     from kubernetes.client.rest import ApiException
 
     KUBERNETES_AVAILABLE = True
@@ -183,9 +187,9 @@ class K8sClient(ContainerClient):
         if not KUBERNETES_AVAILABLE:
             raise ImportError("Kubernetes python package is not available!")
         try:
-            config.load_kube_config()
+            k8s_config.load_kube_config()
         except FileNotFoundError:
-            config.load_incluster_config()
+            k8s_config.load_incluster_config()
         self._c = client.CoreV1Api()
         self._c_batch = client.BatchV1Api()
         self.namespace = namespace
@@ -296,11 +300,13 @@ class K8sClient(ContainerClient):
                 raise e
         return job
 
-    def get_executions(self, task_id):
+    def get_executions(self, task_id, include_hostname=None):
         """Get a job resource by its name."""
-        res = self._c_batch.list_namespaced_job(
-            self.namespace, label_selector=f"luigi_task_id={task_id}"
-        )
+        if include_hostname or config["retry_host_sensitive"].get(bool):
+            lbl_sel = f"luigi_task_id={task_id},luigi_host={socket.gethostname()}"
+        else:
+            lbl_sel = f"luigi_task_id={task_id}"
+        res = self._c_batch.list_namespaced_job(self.namespace, label_selector=lbl_sel)
         jobs = sorted(res.items, key=lambda x: x.metadata.labels["luigi_retries"])
         return jobs
 

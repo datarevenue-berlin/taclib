@@ -6,7 +6,8 @@ for expected output in inputs.
 
 """
 # coding=utf-8
-
+import hashlib
+import socket
 from logging import getLogger
 
 import luigi
@@ -73,28 +74,41 @@ class ContainerTask(luigi.Task):
         This id is based on a hash of a tasks parameters and helps avoid running
         the same task twice. If a task with this names already exists and failed
         it will append a 'retry-<NUMBER>' to the name.
+
+        If retry_host_sensitive is set the hostname will be hashed together with the
+        luigi task id.
         """
-        task_id = self.task_id
-        if len(task_id) > 53:
-            name_components = task_id.split("_")
-            name, param_hash = name_components[0], name_components[-1]
-            return "-".join([name[:43], param_hash]).lower()
-        else:
-            return task_id.lower().replace("_", "-")
+        name_components = self.task_id.split("_")
+        name, param_hash = name_components[0], name_components[-1]
+
+        if config["retry_host_sensitive"].get(bool):
+            param_hash = param_hash + socket.gethostname()
+            param_hash = hashlib.md5(param_hash.encode("utf-8")).hexdigest()[:10]
+
+        if len(name) > 43:
+            name = name[:43]
+
+        task_id = "-".join([name, param_hash])
+        return task_id.lower().replace("_", "-")
 
     @property
     def command(self):
         """The command to be executed by the container."""
-        raise NotImplementedError("Docker task must specify command")
+        raise NotImplementedError("Container task must specify command")
 
     @property
     def image(self):
         """Which image to use to create the container."""
-        raise NotImplementedError("Docker tasks must specify image")
+        raise NotImplementedError("Container tasks must specify image")
 
     @property
     def labels(self):
-        return dict(luigi_retries=str(self._retry_count), luigi_task_id=self.name)
+        return dict(
+            luigi_retries=str(self._retry_count),
+            luigi_task_hash=self.task_id.split("_")[-1],
+            luigi_host=socket.gethostname(),
+            taclib_task_name=self.name,
+        )
 
     @property
     def configuration(self):
