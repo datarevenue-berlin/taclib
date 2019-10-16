@@ -1,10 +1,15 @@
 import os
-import distributed
-from distributed.client import futures_of
+import logging
+
+try:
+    import distributed
+    from distributed.client import futures_of
+except ImportError:
+    logging.warning('distributed module failed to import')
 
 
 def compute(collection, debug=False, **kwargs):
-    if debug or os.getenv('DEBUG_PM', False):
+    if debug or os.getenv("DEBUG_PM", False):
         return _compute(collection, recreate_error_locally=True, **kwargs)
     else:
         return collection.compute(**kwargs)
@@ -17,7 +22,7 @@ def _compute(collection, recreate_error_locally=True, **kwargs):
     try:
         client = distributed.Client.current()
     except ValueError as e:
-        if 'No clients found' not in str(e):
+        if "No clients found" not in str(e):
             raise e
         client = None
 
@@ -39,17 +44,19 @@ def gather(futures, recreate_error_locally=True):
     # Fail if distributed scheduler is not available
     client = distributed.Client.current()
 
-    if any(f.status == 'error' for f in futures) and recreate_error_locally:
+    if any(f.status == "error" for f in futures) and recreate_error_locally:
         for f in futures:
-            if f.status == 'error':
+            if f.status == "error":
                 future = f
                 break
         client.recreate_error_locally(future)
-        raise RuntimeError('Client did not raise any exception on failed '
-                           'future! This is probably due to a killed '
-                           'worker. If you have pdb enabled leave the '
-                           'shell open and inspect the failed graph in '
-                           'Bokeh!')
+        raise RuntimeError(
+            "Client did not raise any exception on failed "
+            "future! This is probably due to a killed "
+            "worker. If you have pdb enabled leave the "
+            "shell open and inspect the failed graph in "
+            "Bokeh!"
+        )
     else:
         gathered = client.gather(futures)
     return gathered
