@@ -88,7 +88,6 @@ def test_task_configuration(mock):
                 "luigi_retries": "0",
                 "luigi_task_hash": "a9b597ad81",
                 "luigi_host": f"{socket.gethostname()}",
-                "taclib_task_name": "kubernetestesttask-281a028e68",
             }
         },
         "environment": ["NLOGS=2"],
@@ -102,6 +101,11 @@ def test_task_configuration(mock):
     task = KubernetesTestTask(
         out="/tmp/test", node_selector="memory=huge", service_account="task-sa"
     )
-    assert json.dumps(task.configuration, sort_keys=True) == json.dumps(
-        expected, sort_keys=True
+
+    conf = task.configuration
+    assert (
+        conf["metadata"]["labels"]
+        .pop("taclib_task_name")
+        .startswith("kubernetestesttask")
     )
+    assert json.dumps(conf, sort_keys=True) == json.dumps(expected, sort_keys=True)
