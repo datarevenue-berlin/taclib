@@ -8,10 +8,7 @@ from taclib.dask import compute, gather
 
 
 def test_compute(client):
-    df = pd.DataFrame({
-        'A': np.arange(1000),
-        'B': list('BA'*500),
-    })
+    df = pd.DataFrame({"A": np.arange(1000), "B": list("BA" * 500)})
     ddf = dd.from_pandas(df, npartitions=10)
     ddf_faulty = ddf.map_partitions(lambda x: x + 1, meta=ddf._meta)
 
@@ -24,10 +21,7 @@ def test_compute(client):
 
 
 def test_gather(tmpdir, client):
-    df = pd.DataFrame({
-        'A': np.arange(1000),
-        'B': list('BA'*500),
-    })
+    df = pd.DataFrame({"A": np.arange(1000), "B": list("BA" * 500)})
     ddf = dd.from_pandas(df, npartitions=10)
     ddf_faulty = ddf.map_partitions(lambda x: x + 1, meta=ddf._meta)
     # this returns a delayed object..

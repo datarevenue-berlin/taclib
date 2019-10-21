@@ -10,3 +10,7 @@ pytest==3.8.2
 pytest-runner==4.2
 pytest-cov==2.7.1
 black==19.3b0
+dask==2.6.0
+numpy
+pandas
+
