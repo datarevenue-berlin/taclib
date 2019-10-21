@@ -14,4 +14,5 @@ dask[dataframe]==2.6.0
 distributed
 numpy
 pandas
+fastparquet
 
