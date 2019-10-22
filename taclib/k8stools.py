@@ -1,11 +1,7 @@
 import os
-
 import click
 import kubernetes
-
-os.environ["DRTOOLS_SETTINGS_MODULE"] = "smaato_dmo.settings.dev"
-
-from drtools.core.container import K8sClient
+from taclib.container import K8sClient
 
 
 @click.group("debug")
@@ -46,6 +42,8 @@ def rerun(pod_name, new_name, tag, namespace, ipython):
 
     if ipython:
         cmd = pod.spec.containers[0].command or []
+        # if command's part contains double quote, enclose it in single quotes
+        cmd = [f"'{x}'" if '"' in x else x for x in cmd]
         cmd = ["/bin/sh", "-c", "pip install ipdb; {}".format(" ".join(cmd))]
         pod.spec.containers[0].command = cmd
 
