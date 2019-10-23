@@ -189,7 +189,7 @@ class K8sClient(ContainerClient):
             raise ImportError("Kubernetes python package is not available!")
         try:
             k8s_config.load_kube_config()
-        except FileNotFoundError:
+        except (FileNotFoundError, TypeError) as e:
             k8s_config.load_incluster_config()
         self._c = client.CoreV1Api()
         self._c_batch = client.BatchV1Api()
