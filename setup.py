@@ -29,7 +29,7 @@ setup(
     description="Task as containers made easy with kubernetes and luigi",
     entry_points={
         'console_scripts': [
-            'taclib=taclib.cli:main',
+            'taclib=taclib.cli:cli',
         ],
     },
     install_requires=requirements,
