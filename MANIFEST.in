@@ -10,3 +10,4 @@ recursive-exclude * *.py[co]
 recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
 include versioneer.py
 include taclib/_version.py
+include taclib/config_default.yaml
