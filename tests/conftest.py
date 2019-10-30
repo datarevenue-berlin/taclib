@@ -1,14 +1,26 @@
-from pathlib import Path
-
 import luigi
 import pytest
-
+from pathlib import Path
 from taclib.task import KubernetesTask
+
+try:
+    from distributed import Client, LocalCluster
+except ImportError:
+    Client = None
+    LocalCluster = None
 
 
 @pytest.fixture()
 def test_assets():
     return Path(__file__).parent / "assets"
+
+
+@pytest.fixture()
+def client(tmpdir):
+    cluster = LocalCluster(local_dir=str(tmpdir))
+    client = Client(cluster)
+    yield client
+    client.close()
 
 
 class KubernetesTestTask(KubernetesTask):
