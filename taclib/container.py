@@ -1,6 +1,7 @@
 import socket
 from logging import getLogger
 
+from kubernetes.config import ConfigException
 from kubernetes.watch import Watch
 from urllib3.exceptions import ReadTimeoutError
 
@@ -188,9 +189,10 @@ class K8sClient(ContainerClient):
         if not KUBERNETES_AVAILABLE:
             raise ImportError("Kubernetes python package is not available!")
         try:
-            k8s_config.load_kube_config()
-        except (FileNotFoundError, TypeError) as e:
             k8s_config.load_incluster_config()
+        except ConfigException:
+            k8s_config.load_kube_config()
+
         self._c = client.CoreV1Api()
         self._c_batch = client.BatchV1Api()
         self.namespace = namespace
