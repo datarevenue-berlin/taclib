@@ -18,15 +18,10 @@ metadata:
   name: taclib-role-binding
   namespace: default
 subjects:
-- kind: ServiceAccount
-  name: taclib-controller-sa
+- kind: Group
+  name: system:serviceaccounts
   namespace: default
 roleRef:
   kind: Role
   name: taclib-pod-controller
   apiGroup: rbac.authorization.k8s.io
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: taclib-controller-sa

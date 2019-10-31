@@ -1,4 +1,4 @@
-image: "${TAG:python3:latest}"
+image: "python:3.7-alpine"
 retry_host_sensitive: true
 requirements: {}
 environment: {}
