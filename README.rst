@@ -2,17 +2,18 @@
 taclib
 ======
 
-Taclib stands for **Task as Containers Library**, and it was created to make easy
-to run luigi tasks in Kubernetes.
+Taclib stands for **Task as Containers Library**, and it was created to ease running
+luigi tasks in Kubernetes.
 
 
 Cluster Role
 ------------
-Each luigi task will be running in a pod as a containerized application. The K8s pods
-have to have permission from the cluster to create new pods, in order to that we have
-to create a Cluster Role and binding it to active service account.
-The configuration file ``cluster_role.yaml`` contain the necessary roles to allow
-pods to create another pods. To activate it we have to apply this role to our cluster through
+Each luigi task will be running in a pod as a containerized application. The luigi controller
+pod needs to have a permission to create new pods in the cluster, in order to do that we have
+to create a Cluster Role and bind it to an active service account.
+The resource file ``cluster_role.yaml`` contain the necessary roles which allow
+the controller pod to create task pods.
+To grant the controller this permission we need to apply this role to our cluster through
 ``kubectl apply -f cluster_role.yaml``
 
 
@@ -46,7 +47,8 @@ on how to use **taclib**.
 If you are familiar with Luigi, you will recognize the structure above.
 We define a custom task that will inherit KubernetesTask. task will spawn a pod
 on Kubernetes using the image you define either through the function ``image``
-or IMAGE environment variable, if none of them are defined taclib will set a default image.
+or through TACLIB_IMAGE environment variable, if none of them are defined taclib
+will set the default image as `python:3-7-alpine`.
 
 Once the pod is running, the task will fire the command defined in
 ``def command(self):``. Note that in the example the given command executes
@@ -63,9 +65,12 @@ or right in the Kubernetes cluster using ``kubectl``.
 ::
 
     kubectl run my-task \
+        --restart Never \
+        --image-pull-policy Always \
         --image my-image \
+        --serviceaccount taclib-controller-sa
         -- luigi --module example.example_task ExampleTask \
-            --scheduler-host my-luigi-scheduler
+            --scheduler-host my-luigi-scheduler \
 
 
 
