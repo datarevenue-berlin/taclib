@@ -400,7 +400,7 @@ class K8sClient(ContainerClient):
                 )
 
     def get_exit_info(self, container):
-        self._wait_for_status(container, "Completed")
+        self._wait_for_status(container, "Succeeded")
         pod = self._get_pod(container)
         pod_status = pod.status
         container_status = pod_status.container_statuses[0]
