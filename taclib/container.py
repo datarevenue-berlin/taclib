@@ -284,7 +284,9 @@ class K8sClient(ContainerClient):
         )
         try:
             job = self._c_batch.create_namespaced_job(self.namespace, body)
-            self._wait_for_status(job, "Running")
+            self._wait_for_status(
+                job, "Running", timeout=config['init_timeout'].get(int)
+            )
         except ApiException as e:
             if e.status == 409:
                 # job already exists
@@ -349,7 +351,8 @@ class K8sClient(ContainerClient):
             return True
         except ReadTimeoutError:
             log = getLogger(__name__)
-            log.info("Pod had status: %s" % self._get_pod(job).status.phase)
+            log.warning("Timeout while waiting for status %s! Pod had status:"
+                        " %s" % (desired_status, self._get_pod(job).status.phase))
             return False
 
     def log_generator(self, container):
@@ -357,6 +360,7 @@ class K8sClient(ContainerClient):
         log = getLogger(__name__)
 
         log.info(f"Waiting for job {container.metadata.name} to run...")
+        self._wait_for_status(container, "Running")
         w = Watch()
         for e in w.stream(
             self._c.read_namespaced_pod_log,
