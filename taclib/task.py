@@ -178,8 +178,8 @@ class KubernetesTask(ContainerTask):
         "Combine multiple selector by separating with a comma.",
     )
     k8s_namespace = luigi.OptionalParameter(
-        default=config['namespaces']['default'].get(str),
-        significant=config['namespaces']['significant'].get(bool),
+        default=config["namespaces"]["default"].get(str),
+        significant=config["namespaces"]["significant"].get(bool),
         description="The kubernetes namespace this task should be ran in.",
     )
 
