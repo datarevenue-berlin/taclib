@@ -9,6 +9,7 @@ from logging import getLogger
 
 try:
     import ipdb
+
     IPDB_AVAILABLE = True
 except ImportError:
     ipdb = None
@@ -22,7 +23,7 @@ def post_mortem_interact(original_func):
 
     It can be turned on globally by settings DEBUG_PM environment variable.
     """
-    DEBUG_PM = os.getenv('DEBUG_PM', False) is not False
+    DEBUG_PM = os.getenv("DEBUG_PM", False) is not False
 
     @wraps(original_func)
     def new_fun(*args, pdb=False, **kwargs):
@@ -30,15 +31,16 @@ def post_mortem_interact(original_func):
         try:
             original_func(*args, **kwargs)
         except:
-            log.exception('Failed to execute {}.')
+            log.exception("Failed to execute {}.")
             if pdb or DEBUG_PM:
-                log.info('Starting post mortem debugger!')
+                log.info("Starting post mortem debugger!")
                 if IPDB_AVAILABLE:
                     ipdb.post_mortem()
                 else:
                     native_pdb.post_mortem()
             else:
                 raise
+
     return new_fun
 
 

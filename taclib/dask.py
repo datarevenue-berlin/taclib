@@ -5,7 +5,7 @@ try:
     import distributed
     from distributed.client import futures_of
 except ImportError:
-    logging.warning('distributed module failed to import')
+    logging.warning("distributed module failed to import")
 
 
 def compute(collection, debug=False, **kwargs):

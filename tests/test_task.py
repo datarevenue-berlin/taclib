@@ -79,6 +79,13 @@ def test_task_node_selector(mock):
 
 
 @mock.patch("taclib.task.KubernetesTask.CLIENT", autospec=K8sClient)
+def test_task_namespace(mock):
+    task = KubernetesTestTask(out='/tmp/test', k8s_namespace='production')
+    assert task.k8s_namespace == 'production'
+    task.CLIENT.assert_called_once_with(namespace='production')
+
+
+@mock.patch("taclib.task.KubernetesTask.CLIENT", autospec=K8sClient)
 def test_task_configuration(mock):
     expected = {
         "metadata": {
