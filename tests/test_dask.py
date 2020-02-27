@@ -6,6 +6,7 @@ try:
     import pandas as pd
     import dask.dataframe as dd
     import pandas.util.testing as pdt
+    SKIP_DASK=False
 except ImportError:
     SKIP_DASK = True
 
