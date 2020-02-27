@@ -290,7 +290,7 @@ class K8sClient(ContainerClient):
         except ApiException as e:
             if e.status == 409:
                 # job already exists
-                log.warning("Received API exception 409.")
+                log.info("Received API exception 409.")
                 job = self._get_job(
                     configuration["metadata"]["labels"]["taclib_task_name"]
                 )
@@ -350,10 +350,19 @@ class K8sClient(ContainerClient):
                         return False
             return True
         except ReadTimeoutError:
-            log = getLogger(__name__)
-            log.warning("Timeout while waiting for status %s! Pod had status:"
-                        " %s" % (desired_status, self._get_pod(job).status.phase))
+            status = self._get_pod(job).status.phase
+            self._warn_pod_status_timeout(desired_status, status)
             return False
+
+    @staticmethod
+    def _warn_pod_status_timeout(desired_status, status):
+        log = getLogger(__name__)
+        if (desired_status != "Running" or status != "Succeeded") \
+                and desired_status != status:
+            log.warning(
+                "Timeout while waiting for status %s! Pod had status:"
+                " %s" % (desired_status, status)
+            )
 
     def log_generator(self, container):
         pod = self._get_pod(container)
