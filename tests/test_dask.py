@@ -1,12 +1,18 @@
-import pdb
-import pytest
-import numpy as np
-import pandas as pd
-import dask.dataframe as dd
-import pandas.util.testing as pdt
 from taclib.dask import compute, gather
 
+try:
+    import pytest
+    import numpy as np
+    import pandas as pd
+    import dask.dataframe as dd
+    import pandas.util.testing as pdt
 
+    SKIP_DASK = False
+except ImportError:
+    SKIP_DASK = True
+
+
+@pytest.mark.skipif(SKIP_DASK, reason="dask[dataframe] dependencies not installed")
 def test_compute(client):
     df = pd.DataFrame({"A": np.arange(1000), "B": list("BA" * 500)})
     ddf = dd.from_pandas(df, npartitions=10)
@@ -20,6 +26,7 @@ def test_compute(client):
         compute(ddf_faulty, debug=True, recreate_error_locally=True)
 
 
+@pytest.mark.skipif(SKIP_DASK, reason="dask[dataframe] dependencies not installed")
 def test_gather(tmpdir, client):
     df = pd.DataFrame({"A": np.arange(1000), "B": list("BA" * 500)})
     ddf = dd.from_pandas(df, npartitions=10)
