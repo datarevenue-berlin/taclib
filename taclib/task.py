@@ -177,6 +177,14 @@ class KubernetesTask(ContainerTask):
         description="Node selector for this task, use lbl=value syntax. "
         "Combine multiple selector by separating with a comma.",
     )
+    k8s_namespace = luigi.OptionalParameter(
+        default=config["namespaces"]["default"].get(str),
+        significant=config["namespaces"]["significant"].get(bool),
+        description="The kubernetes namespace this task should be ran in.",
+    )
+
+    def get_client(self) -> ContainerClient:
+        return self.CLIENT(namespace=self.k8s_namespace)
 
     @property
     def image(self):

@@ -285,7 +285,7 @@ class K8sClient(ContainerClient):
         try:
             job = self._c_batch.create_namespaced_job(self.namespace, body)
             self._wait_for_status(
-                job, "Running", timeout=config['init_timeout'].get(int)
+                job, "Running", timeout=config["init_timeout"].get(int)
             )
         except ApiException as e:
             if e.status == 409:

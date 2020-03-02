@@ -6,3 +6,6 @@ resources: {}
 pod_spec: {}
 job_spec: {}
 init_timeout: 300
+namespaces:
+    default: default
+    significant: false
