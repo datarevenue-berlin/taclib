@@ -1,7 +1,10 @@
+from unittest import mock
+
 from taclib.container import K8sClient
 
 
-def test_make_jobspec():
+@mock.patch("taclib.container.k8s_config")
+def test_make_jobspec(patched_config):
     client = K8sClient()
 
     job_spec = client._make_job_spec(
@@ -41,7 +44,7 @@ def test_make_jobspec():
     }
     assert container["command"] == ["echo", "hello", "world"]
     assert container["image"] == "drtools/job:0.1.0"
-    assert container["volume_mounts"] == {
+    assert container["volume_mounts"][0] == {
         "mount_path": "/root/.config/vpforecast/config.yaml",
         "name": "az-secrets-volume",
     }
