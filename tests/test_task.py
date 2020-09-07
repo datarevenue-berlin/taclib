@@ -103,6 +103,7 @@ def test_task_configuration(mock):
             [("node_selector", {"memory": "huge"}), ("service_account_name", "task-sa")]
         ),
         "job_spec_kwargs": OrderedDict(),
+        "container_spec_kwargs": OrderedDict(),
     }
 
     task = KubernetesTestTask(
