@@ -212,7 +212,7 @@ class K8sClient(ContainerClient):
 
     @staticmethod
     def _make_job_spec(
-        name, image, cmd, resources, env, metadata, pod_spec_kwargs, job_spec_kwargs
+        name, image, cmd, resources, env, metadata, pod_spec_kwargs, job_spec_kwargs, container_spec_kwargs,
     ):
         """Create job specification."""
         spec = client.V1JobSpec(
@@ -227,6 +227,7 @@ class K8sClient(ContainerClient):
                             env=K8sClient._docker_env_to_k8s_env(env),
                             image_pull_policy="Always",
                             resources=client.V1ResourceRequirements(**resources),
+                            **container_spec_kwargs,
                         )
                     ],
                     restart_policy="Never",
@@ -281,6 +282,7 @@ class K8sClient(ContainerClient):
             configuration.get("metadata"),
             pod_spec_kwargs=configuration.get("pod_spec_kwargs"),
             job_spec_kwargs=configuration.get("job_spec_kwargs"),
+            container_spec_kwargs=configuration.get("container_spec_kwargs")
         )
         try:
             job = self._c_batch.create_namespaced_job(self.namespace, body)

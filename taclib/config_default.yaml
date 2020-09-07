@@ -5,6 +5,7 @@ environment: {}
 resources: {}
 pod_spec: {}
 job_spec: {}
+container_spec: {}
 init_timeout: 300
 namespaces:
     default: default
