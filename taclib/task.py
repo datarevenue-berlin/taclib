@@ -231,6 +231,10 @@ class KubernetesTask(ContainerTask):
         return config["job_spec"].get()
 
     @property
+    def container_spec_kwargs(self):
+        return config["container_spec"].get()
+
+    @property
     def configuration(self):
         default_environment = super().configuration.get("environment", {})
         labels = {"luigi_task_family": self.task_family[:64], "spawned_by": "luigi"}
@@ -245,4 +249,5 @@ class KubernetesTask(ContainerTask):
             "resources": self.k8s_resources,
             "pod_spec_kwargs": self.pod_spec_kwargs,
             "job_spec_kwargs": self.job_spec_kwargs,
+            "container_spec_kwargs": self.container_spec_kwargs
         }
