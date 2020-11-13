@@ -396,19 +396,37 @@ class K8sClient(ContainerClient):
                 " %s" % (desired_status, status)
             )
 
-    def log_generator(self, container, timeout=60*5):
+    def log_generator(self, container, timeout=300):
         pod = self._get_pod(container)
         taclib_log = getLogger(f"container-log [{pod.metadata.name}]")
 
         taclib_log.info(f"Waiting for job {container.metadata.name} to run...")
         self._wait_for_status(container, "Running")
         w = Watch()
-        for e in w.stream(
-            self._c.read_namespaced_pod_log,
-            name=pod.metadata.name,
-            namespace=self.namespace,
-        ):
-            yield e.encode()
+
+        taclib_log.info(f"Start watching {pod.metadata.name} logs")
+
+        while True:
+            try:
+                for e in w.stream(
+                    self._c.read_namespaced_pod_log,
+                    name=pod.metadata.name,
+                    namespace=self.namespace,
+                    follow=True,
+                    _request_timeout=config["request_log_timeout"].get(int),
+                ):
+                    yield e.encode()
+            except ReadTimeoutError:
+                taclib_log.info("Failed to read pod log - timeout error")
+                job = self._get_job(container.metadata.name)
+                status = self._get_pod(job).status.phase
+                if status == "Running":
+                    taclib_log.info("Pod is still running after failing to fetch logs")
+                    taclib_log.info("Retrying to fetch pod logs")
+                    continue
+            break
+
+        taclib_log.info(f"Stop watching {pod.metadata.name} logs")
 
     def _get_pod(self, job, timeout=15):
         """Get pod spawned by a certain job."""
