@@ -30,8 +30,6 @@ class ContainerNotFound(Exception):
     pass
 
 
-taclib_log = getLogger("container-log")
-
 
 class ContainerClient:
     def run_task(self, image, name, command, configuration):
@@ -199,6 +197,7 @@ class K8sClient(ContainerClient):
         self._c = client.CoreV1Api()
         self._c_batch = client.BatchV1Api()
         self.namespace = namespace
+        self.taclib_log = getLogger(__name__)
 
     @staticmethod
     def _docker_env_to_k8s_env(env):
@@ -283,7 +282,9 @@ class K8sClient(ContainerClient):
         -------
             job: V1Job
         """
-        log = getLogger(__name__)
+        self.taclib_log = getLogger(f"container-log [{name}]")
+        self.taclib_log.info("Spin up container job in a kubernetes pod")
+
         body = self._make_job_spec(
             name,
             image,
@@ -296,7 +297,6 @@ class K8sClient(ContainerClient):
             container_spec_kwargs=configuration.get("container_spec_kwargs"),
         )
         try:
-            taclib_log.info("starting container")
             job = self._c_batch.create_namespaced_job(self.namespace, body)
             self._wait_for_status(
                 job, "Running", timeout=config["init_timeout"].get(int)
@@ -304,18 +304,18 @@ class K8sClient(ContainerClient):
         except ApiException as e:
             if e.status == 409:
                 # job already exists
-                taclib_log.info("Received API exception 409.")
+                self.taclib_log.info("Received API exception 409.")
                 job = self._get_job(
                     configuration["metadata"]["labels"]["taclib_task_name"]
                 )
-                taclib_log.info(
+                self.taclib_log.info(
                     "Found existing job for this task. " "Will try to reconnect"
                 )
                 # KubernetesTask will receive a job object and depending on
                 # its status it will either reconnect to the log stream or
                 # raise an error end retry the task (using luigi's retry logic)
             elif e.status == 400:
-                log.error(str(body))
+                self.taclib_log.error(str(body))
                 raise e
             else:
                 raise e
@@ -345,7 +345,7 @@ class K8sClient(ContainerClient):
         """Wait for a certain status."""
         pod = self._get_pod(job)
 
-        taclib_log.info(
+        self.taclib_log.info(
             f"Waiting job {job.metadata.name} to be with status {desired_status}. Timeout set to {timeout}"
             f"\n pod: {pod.metadata.name}"
         )
@@ -365,9 +365,6 @@ class K8sClient(ContainerClient):
 
         try:
             for event in generator:
-                taclib_log.info(
-                    f"for event in generator - event: {event['type']} - pod {[pod.metadata.name]}"
-                )
                 if event["type"] == "MODIFIED":
                     status = event["object"].status.phase
                     if status == desired_status:
@@ -377,7 +374,7 @@ class K8sClient(ContainerClient):
             return True
         except ReadTimeoutError:
             status = self._get_pod(job).status.phase
-            taclib_log.info(
+            self.taclib_log.info(
                 "Timeout while waiting for status %s! Pod had status:"
                 " %s" % (desired_status, status)
             )
@@ -385,26 +382,23 @@ class K8sClient(ContainerClient):
             self._warn_pod_status_timeout(desired_status, status)
             return False
 
-    @staticmethod
-    def _warn_pod_status_timeout(desired_status, status):
-        log = getLogger(__name__)
+    def _warn_pod_status_timeout(self, desired_status, status):
         if (
             desired_status != "Running" or status != "Succeeded"
         ) and desired_status != status:
-            taclib_log.warning(
+            self.taclib_log.warning(
                 "Timeout while waiting for status %s! Pod had status:"
                 " %s" % (desired_status, status)
             )
 
     def log_generator(self, container, timeout=300):
         pod = self._get_pod(container)
-        taclib_log = getLogger(f"container-log [{pod.metadata.name}]")
 
-        taclib_log.info(f"Waiting for job {container.metadata.name} to run...")
+        self.taclib_log.info(f"Waiting for job {container.metadata.name} to run...")
         self._wait_for_status(container, "Running")
         w = Watch()
 
-        taclib_log.info(f"Start watching {pod.metadata.name} logs")
+        self.taclib_log.info(f"Start watching {pod.metadata.name} logs")
 
         while True:
             try:
@@ -417,21 +411,20 @@ class K8sClient(ContainerClient):
                 ):
                     yield e.encode()
             except ReadTimeoutError:
-                taclib_log.info("Failed to read pod log - timeout error")
+                self.taclib_log.info("Failed to read pod log - timeout error")
                 job = self._get_job(container.metadata.name)
                 status = self._get_pod(job).status.phase
                 if status == "Running":
-                    taclib_log.info("Pod is still running after failing to fetch logs")
-                    taclib_log.info("Retrying to fetch pod logs")
+                    self.taclib_log.info("Pod is still running after failing to fetch logs")
+                    self.taclib_log.info("Retrying to fetch pod logs")
                     continue
             break
 
-        taclib_log.info(f"Stop watching {pod.metadata.name} logs")
+        self.taclib_log.info(f"Stop watching {pod.metadata.name} logs")
 
     def _get_pod(self, job, timeout=15):
         """Get pod spawned by a certain job."""
         job_name = job.metadata.name
-
 
         w = watch.Watch()
         generator = w.stream(
@@ -444,7 +437,6 @@ class K8sClient(ContainerClient):
         try:
             for event in generator:
                 pod = event["object"]
-                taclib_log.info(f"get pod in generator: {pod.metadata.name}")
                 break
             return pod
         except ReadTimeoutError:
@@ -452,7 +444,7 @@ class K8sClient(ContainerClient):
             # generator too late and actually missed the event. Thus try to get
             # the pod without actually waiting for a event to happen.
             try:
-                taclib_log.info(
+                self.taclib_log.info(
                     f"ReadTimeoutError - Job: {job.metadata.name} timeout - {timeout}"
                 )
 
@@ -471,9 +463,10 @@ class K8sClient(ContainerClient):
         pod_status = pod.status
         container_status = pod_status.container_statuses[0]
 
-        taclib_log = getLogger(f"container-log [{container.metadata.name}]")
-        taclib_log.info(
-            f"exit info: pod - {pod.metadata.name} - status: { container_status.state.terminated.exit_code}"
+        self.taclib_log.info(
+            f"Container exit info: "
+            f"status - {container_status.state.terminated.exit_code}"
+            f"message - {container_status.state.terminated.message}"
         )
         return (
             container_status.state.terminated.exit_code,
@@ -490,7 +483,8 @@ class K8sClient(ContainerClient):
         pass
 
     def get_container(self, name):
-        taclib_log.info(f"get container with name {name}")
+        self.taclib_log.info(f"get container with name {name}")
+
         response = self._c.list_namespaced_pod(
             self.namespace, field_selector=f"metadata.name={name}"
         )
@@ -505,7 +499,7 @@ class K8sClient(ContainerClient):
             job = self._get_job(task_id)
             current = int(job.metadata.labels["luigi_retries"])
             status = self._get_pod(job).status.phase
-            taclib_log.info(
+            self.taclib_log.info(
                 f"get retry count: job: {job.metadata.name} - status {status}"
             )
             if status != "Failed":

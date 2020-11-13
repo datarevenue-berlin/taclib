@@ -15,9 +15,6 @@ import luigi
 from taclib.config import config
 from taclib.container import ContainerClient, K8sClient
 
-task_log = getLogger("luigi-task-logger")
-
-
 class ContainerTask(luigi.Task):
     """Base class to run containers."""
 
@@ -35,6 +32,8 @@ class ContainerTask(luigi.Task):
         self.u_name = None
         self._retry_count = 0
         self._log = []
+
+        self.task_log = getLogger("luigi-task-logger")
 
     def get_client(self) -> ContainerClient:
         """Retrieve execution engine client.
@@ -137,20 +136,20 @@ class ContainerTask(luigi.Task):
             self._run_and_track_task()
         finally:
             if self._container:
-                task_log.info(f"{self._uname}: stopping container")
+                self.task_log.info(f"{self._uname}: stopping container")
                 self._client.stop_container(self._container)
 
     def _run_and_track_task(self):
-        task_log = getLogger(f"task-log [{self.name}]")
+        self.task_log = getLogger(f"task-log [{self.name}]")
 
-        task_log.info(f"Run and track task")
+        self.task_log.info(f"Run and track task")
         self._retry_count = self._client.get_retry_count(self.name)
         self._set_name()
 
         self._container = self._client.run_container(
             self.image, self.u_name, self.command, self.configuration
         )
-        task_log.info(f"Running task on container {self._container.metadata.name}")
+        self.task_log.info(f"Running task on container {self._container.metadata.name}")
 
         self._log = []
         log_stream = self._client.log_generator(self._container)
@@ -162,13 +161,13 @@ class ContainerTask(luigi.Task):
                 self.set_status_message("\n".join(self._log))
 
         exit_info = self._client.get_exit_info(self._container)
-        task_log.info(f"Task exit info: {exit_info}")
+
         if exit_info[0] == 0:
             if not self.keep_finished:
                 self._client.remove_container(self._container)
             self._container = None
         else:
-            task_log.error(
+            self.task_log.error(
                 "Container exited with status code:"
                 " {} and msg: {}".format(exit_info[0], exit_info[1])
             )
