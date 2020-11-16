@@ -30,7 +30,6 @@ class ContainerNotFound(Exception):
     pass
 
 
-
 class ContainerClient:
     def run_task(self, image, name, command, configuration):
         """Method used to submit/run a container.
@@ -415,7 +414,9 @@ class K8sClient(ContainerClient):
                 job = self._get_job(container.metadata.name)
                 status = self._get_pod(job).status.phase
                 if status == "Running":
-                    self.taclib_log.info("Pod is still running after failing to fetch logs")
+                    self.taclib_log.info(
+                        "Pod is still running after failing to fetch logs"
+                    )
                     self.taclib_log.info("Retrying to fetch pod logs")
                     continue
             break
@@ -508,3 +509,13 @@ class K8sClient(ContainerClient):
                 return current + 1
         except ContainerNotFound:
             return 0
+
+    def remove_succeeded_pods(self):
+        try:
+            self.taclib_log.info("Removing ducceeded pods...")
+            self._c.delete_collection_namespaced_pod(
+                namespace=self.namespace,
+                field_selector="status.phase=Succeeded",
+            )
+        except Exception:
+            self.taclib_log.error(f"Could not complete removing succeeded pods.")

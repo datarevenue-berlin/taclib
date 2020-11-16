@@ -138,6 +138,7 @@ class ContainerTask(luigi.Task):
             if self._container:
                 self.task_log.info(f"{self._uname}: stopping container")
                 self._client.stop_container(self._container)
+            self._client.remove_succeeded_pods()
 
     def _run_and_track_task(self):
         self.task_log = getLogger(f"task-log [{self.name}]")
