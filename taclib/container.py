@@ -512,7 +512,7 @@ class K8sClient(ContainerClient):
 
     def remove_succeeded_pods(self):
         try:
-            self.taclib_log.info("Removing ducceeded pods...")
+            self.taclib_log.info("Removing succeeded pods...")
             self._c.delete_collection_namespaced_pod(
                 namespace=self.namespace,
                 field_selector="status.phase=Succeeded",
