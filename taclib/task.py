@@ -136,7 +136,6 @@ class ContainerTask(luigi.Task):
             self._run_and_track_task()
         finally:
             if self._container:
-                self.task_log.info(f"{self._uname}: stopping container")
                 self._client.stop_container(self._container)
             self._client.remove_succeeded_pods()
 
