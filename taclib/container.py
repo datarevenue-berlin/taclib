@@ -30,7 +30,6 @@ class ContainerNotFound(Exception):
     pass
 
 
-
 class ContainerClient:
     def run_task(self, image, name, command, configuration):
         """Method used to submit/run a container.
@@ -415,7 +414,9 @@ class K8sClient(ContainerClient):
                 job = self._get_job(container.metadata.name)
                 status = self._get_pod(job).status.phase
                 if status == "Running":
-                    self.taclib_log.info("Pod is still running after failing to fetch logs")
+                    self.taclib_log.info(
+                        "Pod is still running after failing to fetch logs"
+                    )
                     self.taclib_log.info("Retrying to fetch pod logs")
                     continue
             break

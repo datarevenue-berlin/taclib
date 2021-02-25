@@ -15,6 +15,7 @@ import luigi
 from taclib.config import config
 from taclib.container import ContainerClient, K8sClient
 
+
 class ContainerTask(luigi.Task):
     """Base class to run containers."""
 
