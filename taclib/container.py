@@ -225,7 +225,6 @@ class K8sClient(ContainerClient):
                             image=image,
                             command=cmd,
                             env=K8sClient._docker_env_to_k8s_env(env),
-                            image_pull_policy="Always",
                             resources=client.V1ResourceRequirements(**resources),
                             **container_spec_kwargs,
                         )

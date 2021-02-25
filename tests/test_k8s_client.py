@@ -29,7 +29,8 @@ def test_make_jobspec(patched_config):
                     "name": "az-secrets-volume",
                     "mount_path": "/root/.config/vpforecast/config.yaml",
                 }
-            ]
+            ],
+            "image_pull_policy": "IfNotPresent"
         },
     )
     container = job_spec.spec.template.spec.containers[0].to_dict()
@@ -48,3 +49,4 @@ def test_make_jobspec(patched_config):
         "mount_path": "/root/.config/vpforecast/config.yaml",
         "name": "az-secrets-volume",
     }
+    assert container["image_pull_policy"] == "IfNotPresent"
