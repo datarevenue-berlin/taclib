@@ -48,9 +48,9 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"taclib"
-copyright = u"2019, Data Revenue GmbH"
-author = u"Data Revenue GmbH"
+project = "taclib"
+copyright = "2019, Data Revenue GmbH"
+author = "Data Revenue GmbH"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout
@@ -126,7 +126,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass
 # [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "taclib.tex", u"taclib Documentation", u"Data Revenue GmbH", "manual")
+    (master_doc, "taclib.tex", "taclib Documentation", "Data Revenue GmbH", "manual")
 ]
 
 
@@ -134,7 +134,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "taclib", u"taclib Documentation", [author], 1)]
+man_pages = [(master_doc, "taclib", "taclib Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------
@@ -146,7 +146,7 @@ texinfo_documents = [
     (
         master_doc,
         "taclib",
-        u"taclib Documentation",
+        "taclib Documentation",
         author,
         "taclib",
         "One line description of project.",
