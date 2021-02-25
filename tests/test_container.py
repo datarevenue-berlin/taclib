@@ -19,7 +19,7 @@ from taclib.container import K8sClient
     ],
 )
 def test_warn_pod_status_timeout(desired, actual, warn, caplog):
-    K8sClient._warn_pod_status_timeout(desired, actual)
+    K8sClient()._warn_pod_status_timeout(desired, actual)
     if warn:
         assert "Timeout while waiting for status" in caplog.text
     else:
