@@ -380,11 +380,13 @@ class K8sClient(ContainerClient):
             self._warn_pod_status_timeout(desired_status, status)
             return False
 
-    def _warn_pod_status_timeout(self, desired_status, status):
+    @staticmethod
+    def _warn_pod_status_timeout(desired_status, status):
+        logger = getLogger(__name__)
         if (
             desired_status != "Running" or status != "Succeeded"
         ) and desired_status != status:
-            self.taclib_log.warning(
+            logger.warning(
                 "Timeout while waiting for status %s! Pod had status:"
                 " %s" % (desired_status, status)
             )
