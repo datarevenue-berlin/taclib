@@ -249,5 +249,5 @@ class KubernetesTask(ContainerTask):
             "resources": self.k8s_resources,
             "pod_spec_kwargs": self.pod_spec_kwargs,
             "job_spec_kwargs": self.job_spec_kwargs,
-            "container_spec_kwargs": self.container_spec_kwargs
+            "container_spec_kwargs": self.container_spec_kwargs,
         }
