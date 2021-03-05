@@ -5,7 +5,8 @@ environment: {}
 resources: {}
 pod_spec: {}
 job_spec: {}
-container_spec: {}
+container_spec:
+    image_pull_policy: "IfNotPresent"
 init_timeout: 300
 request_log_timeout: 300
 namespaces:
