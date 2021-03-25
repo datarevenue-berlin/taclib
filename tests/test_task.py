@@ -102,7 +102,7 @@ def test_task_configuration(mock):
         },
         "environment": ["NLOGS=2"],
         "resources": OrderedDict(),
-        "pod_metadata":  {"annotations": {"safe-to-evict": "true"}},
+        "pod_metadata": {"annotations": {"safe-to-evict": "true"}},
         "pod_spec_kwargs": OrderedDict(
             [("node_selector", {"memory": "huge"}), ("service_account_name", "task-sa")]
         ),

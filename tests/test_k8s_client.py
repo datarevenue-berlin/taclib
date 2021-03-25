@@ -52,5 +52,3 @@ def test_make_jobspec(patched_config):
         "name": "az-secrets-volume",
     }
     assert container["image_pull_policy"] == "IfNotPresent"
-
-
