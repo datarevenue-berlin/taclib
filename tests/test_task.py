@@ -82,20 +82,6 @@ def test_task_node_selector(mock):
 
 
 @mock.patch("taclib.task.KubernetesTask.CLIENT", autospec=K8sClient)
-def test_task_annotations(mock):
-    task = KubernetesTestTask(out="/tmp/test", annotations="safe-to-evict=true")
-    assert task.pod_spec_kwargs["annotations"] == {"safe-to-evict": "true"}
-
-    task = KubernetesTestTask(
-        out="/tmp/test", annotations="safe-to-evict=true,base-image=image"
-    )
-    assert task.pod_spec_kwargs["annotations"] == {
-        "safe-to-evict": "true",
-        "base-image": "image",
-    }
-
-
-@mock.patch("taclib.task.KubernetesTask.CLIENT", autospec=K8sClient)
 def test_task_namespace(mock):
     task = KubernetesTestTask(out="/tmp/test", k8s_namespace="production")
     assert task.k8s_namespace == "production"
@@ -116,6 +102,7 @@ def test_task_configuration(mock):
         },
         "environment": ["NLOGS=2"],
         "resources": OrderedDict(),
+        "pod_metadata":  {"annotations": {"safe-to-evict": "true"}},
         "pod_spec_kwargs": OrderedDict(
             [("node_selector", {"memory": "huge"}), ("service_account_name", "task-sa")]
         ),
