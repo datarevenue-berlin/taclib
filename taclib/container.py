@@ -1,5 +1,6 @@
 import socket
 from logging import getLogger
+from typing import List, Dict, Any
 
 from kubernetes.config import ConfigException
 from kubernetes.watch import Watch
@@ -213,20 +214,22 @@ class K8sClient(ContainerClient):
 
     @staticmethod
     def _make_job_spec(
-        name,
-        image,
-        cmd,
-        resources,
-        env,
-        metadata,
-        pod_spec_kwargs,
-        job_spec_kwargs,
-        container_spec_kwargs,
-    ):
+        name: str,
+        image: str,
+        cmd: List[str],
+        resources: dict,
+        env: List[str],
+        job_metadata: Dict[str, Any],
+        pod_metadata: Dict[str, Any],
+        pod_spec_kwargs: Dict[str, Any],
+        job_spec_kwargs: Dict[str, Any],
+        container_spec_kwargs: Dict[str, Any],
+    ) -> client.V1Job:
         """Create job specification."""
         spec = client.V1JobSpec(
             backoff_limit=0,
             template=client.V1PodTemplateSpec(
+                metadata=client.V1ObjectMeta(**pod_metadata),
                 spec=client.V1PodSpec(
                     containers=[
                         client.V1Container(
@@ -241,14 +244,14 @@ class K8sClient(ContainerClient):
                     restart_policy="Never",
                     image_pull_secrets=None,
                     **pod_spec_kwargs,
-                )
+                ),
             ),
             **job_spec_kwargs,
         )
-        metadata = metadata.copy()
-        metadata["name"] = name
-        metadata = client.V1ObjectMeta(**metadata)
-        return client.V1Job(api_version="batch/v1", spec=spec, metadata=metadata)
+        job_metadata = job_metadata.copy()
+        job_metadata["name"] = name
+        job_metadata = client.V1ObjectMeta(**job_metadata)
+        return client.V1Job(api_version="batch/v1", spec=spec, metadata=job_metadata)
 
     def run_container(self, image, name, command, configuration):
         """Run a container job in a kubernetes pod.
@@ -284,12 +287,13 @@ class K8sClient(ContainerClient):
         self.taclib_log.info("Spin up container job in a kubernetes pod")
 
         body = self._make_job_spec(
-            name,
-            image,
-            command,
-            configuration.get("resources"),
-            configuration.get("environment"),
-            configuration.get("metadata"),
+            name=name,
+            image=image,
+            cmd=command,
+            resources=configuration.get("resources"),
+            env=configuration.get("environment"),
+            job_metadata=configuration.get("metadata"),
+            pod_metadata=configuration.get("pod_metadata"),
             pod_spec_kwargs=configuration.get("pod_spec_kwargs"),
             job_spec_kwargs=configuration.get("job_spec_kwargs"),
             container_spec_kwargs=configuration.get("container_spec_kwargs"),

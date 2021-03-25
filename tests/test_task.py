@@ -77,6 +77,23 @@ def test_task_node_selector(mock):
     task = KubernetesTestTask(out="/tmp/test", node_selector="memory=huge")
     assert task.pod_spec_kwargs["node_selector"] == {"memory": "huge"}
 
+    task = KubernetesTestTask(out="/tmp/test", node_selector="memory=huge,lbl=label_1")
+    assert task.pod_spec_kwargs["node_selector"] == {"memory": "huge", "lbl": "label_1"}
+
+
+@mock.patch("taclib.task.KubernetesTask.CLIENT", autospec=K8sClient)
+def test_task_annotations(mock):
+    task = KubernetesTestTask(out="/tmp/test", annotations="safe-to-evict=true")
+    assert task.pod_spec_kwargs["annotations"] == {"safe-to-evict": "true"}
+
+    task = KubernetesTestTask(
+        out="/tmp/test", annotations="safe-to-evict=true,base-image=image"
+    )
+    assert task.pod_spec_kwargs["annotations"] == {
+        "safe-to-evict": "true",
+        "base-image": "image",
+    }
+
 
 @mock.patch("taclib.task.KubernetesTask.CLIENT", autospec=K8sClient)
 def test_task_namespace(mock):
