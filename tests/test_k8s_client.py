@@ -6,24 +6,24 @@ from taclib.container import K8sClient
 @mock.patch("taclib.container.k8s_config")
 def test_make_jobspec(patched_config):
     client = K8sClient()
-
     job_spec = client._make_job_spec(
-        "test-job",
-        "drtools/job:0.1.0",
-        ["echo", "hello", "world"],
-        {},
-        ["PYTHONUNBUFFERED=True"],
-        {"labels": {"mypipeline": "test"}},
-        {
+        name="test-job",
+        image="drtools/job:0.1.0",
+        cmd=["echo", "hello", "world"],
+        resources={},
+        env=["PYTHONUNBUFFERED=True"],
+        job_metadata={"labels": {"mypipeline": "test"}},
+        pod_metadata={"annotations": {"safe-to-evict": "true"}},
+        pod_spec_kwargs={
             "volumes": [
                 {
                     "name": "az-secrets-volume",
                     "secret": {"secret_name": "az-credentials-yaml"},
                 }
-            ]
+            ],
         },
-        {},
-        {
+        job_spec_kwargs={},
+        container_spec_kwargs={
             "volume_mounts": [
                 {
                     "name": "az-secrets-volume",
@@ -38,6 +38,8 @@ def test_make_jobspec(patched_config):
         "name": "az-secrets-volume",
         "secret": {"secret_name": "az-credentials-yaml"},
     }
+    assert job_spec.metadata.labels == {"mypipeline": "test"}
+    assert job_spec.spec.template.metadata.annotations == {"safe-to-evict": "true"}
     assert container["env"][0] == {
         "name": "PYTHONUNBUFFERED",
         "value": "True",

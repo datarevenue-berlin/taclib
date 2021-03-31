@@ -77,6 +77,9 @@ def test_task_node_selector(mock):
     task = KubernetesTestTask(out="/tmp/test", node_selector="memory=huge")
     assert task.pod_spec_kwargs["node_selector"] == {"memory": "huge"}
 
+    task = KubernetesTestTask(out="/tmp/test", node_selector="memory=huge,lbl=label_1")
+    assert task.pod_spec_kwargs["node_selector"] == {"memory": "huge", "lbl": "label_1"}
+
 
 @mock.patch("taclib.task.KubernetesTask.CLIENT", autospec=K8sClient)
 def test_task_namespace(mock):
@@ -99,6 +102,7 @@ def test_task_configuration(mock):
         },
         "environment": ["NLOGS=2"],
         "resources": OrderedDict(),
+        "pod_metadata": {"annotations": {"safe-to-evict": "true"}},
         "pod_spec_kwargs": OrderedDict(
             [("node_selector", {"memory": "huge"}), ("service_account_name", "task-sa")]
         ),

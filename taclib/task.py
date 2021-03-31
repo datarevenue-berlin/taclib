@@ -9,6 +9,7 @@ for expected output in inputs.
 import hashlib
 import socket
 from logging import getLogger
+from typing import Dict
 
 import luigi
 
@@ -193,6 +194,7 @@ class KubernetesTask(ContainerTask):
         description="Node selector for this task, use lbl=value syntax. "
         "Combine multiple selector by separating with a comma.",
     )
+
     k8s_namespace = luigi.OptionalParameter(
         default=config["namespaces"]["default"].get(str),
         significant=config["namespaces"]["significant"].get(bool),
@@ -211,15 +213,25 @@ class KubernetesTask(ContainerTask):
         return config["resources"].get()
 
     @property
-    def _node_selector_dict(self):
+    def pod_metadata(self):
+        return config["pod_metadata"].get()
+
+    @staticmethod
+    def _str_metadata_to_dict(
+        metadata_values: luigi.OptionalParameter,
+    ) -> Dict[str, str]:
         res = {}
-        if self.node_selector:
-            for sel in self.node_selector.split(","):
-                lbl, value = sel.split("=")
-                lbl = lbl.strip()
+        if metadata_values:
+            for sel in metadata_values.split(","):
+                key, value = sel.split("=")
+                key = key.strip()
                 value = value.strip()
-                res[lbl] = value
+                res[key] = value
         return res
+
+    @property
+    def _node_selector_dict(self) -> Dict[str, str]:
+        return self._str_metadata_to_dict(self.node_selector)
 
     @property
     def pod_spec_kwargs(self):
@@ -263,6 +275,7 @@ class KubernetesTask(ContainerTask):
             "metadata": {"labels": labels},
             "environment": default_environment,
             "resources": self.k8s_resources,
+            "pod_metadata": self.pod_metadata,
             "pod_spec_kwargs": self.pod_spec_kwargs,
             "job_spec_kwargs": self.job_spec_kwargs,
             "container_spec_kwargs": self.container_spec_kwargs,

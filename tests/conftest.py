@@ -49,6 +49,10 @@ class KubernetesTestTask(KubernetesTask):
         return "drtools/random-task"
 
     @property
+    def pod_metadata(self):
+        return {"annotations": {"safe-to-evict": "true"}}
+
+    @property
     def configuration(self):
         env = ["NLOGS=2"]
         if self.fail:
